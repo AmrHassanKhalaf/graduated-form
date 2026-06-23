@@ -96,6 +96,7 @@
       .warning h3 { padding:1.5mm 3mm; }
       .warning ol { margin-top:1.5mm; line-height:1.55; }
       input { color:#000 !important; }
+      .selected-field { outline:0 !important; }
     }
     @media (max-width:800px) { .sheet { transform-origin:top center; width:210mm; margin-left:0; } body { overflow-x:auto; } }
   </style>
@@ -236,8 +237,17 @@
       sizeControl.value = parseInt(field.style.fontSize || getComputedStyle(field).fontSize, 10) || 14;
       weightControl.value = field.style.fontWeight || getComputedStyle(field).fontWeight || '400';
     }
+    function clearSelectedField() {
+      if (!selectedField) return;
+      selectedField.classList.remove('selected-field');
+      selectedField = null;
+    }
     document.addEventListener('focusin', event => {
       if (event.target.matches('input[type="text"], input[type="tel"]')) selectField(event.target);
+    });
+    document.addEventListener('pointerdown', event => {
+      if (event.target.matches('input[type="text"], input[type="tel"]') || event.target.closest('.field-style')) return;
+      clearSelectedField();
     });
     alignmentControl.addEventListener('change', event => { if (selectedField) selectedField.style.textAlign = event.target.value; });
     sizeControl.addEventListener('input', event => { if (selectedField) selectedField.style.fontSize = `${event.target.value}px`; });
@@ -249,7 +259,8 @@
       event.target.value = normalizePhoneDigits(event.target.value).slice(0, 11);
     }));
     document.getElementById('signatureScale').addEventListener('input', event => { document.querySelector('.student-sign .upload-area').style.setProperty('--signature-scale', event.target.value); });
-    document.getElementById('printPdf').addEventListener('click', () => { document.title = 'استمارة بيانات الخريجين'; window.print(); });
+    window.addEventListener('beforeprint', clearSelectedField);
+    document.getElementById('printPdf').addEventListener('click', () => { clearSelectedField(); if (document.activeElement) document.activeElement.blur(); document.title = 'استمارة بيانات الخريجين'; window.print(); });
     document.getElementById('resetForm').addEventListener('click', () => { if (confirm('هل تريد مسح جميع البيانات والصور؟')) location.reload(); });
   </script>
 </body>
